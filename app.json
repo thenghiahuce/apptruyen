@@ -1,0 +1,22 @@
+{
+    "expo": {
+      "name": "WebTruyen",
+      "slug": "webtruyen",
+      "version": "1.0.0",
+      "orientation": "portrait",
+      "platforms": ["android", "ios", "web"],
+      "icon": "./webtruyen/assets/icon.png",
+      "splash": {
+        "image": "./webtruyen/assets/splash-icon.png",
+        "resizeMode": "contain",
+        "backgroundColor": "#ffffff"
+      },
+      "android": {
+        "package": "com.thenghia.webtruyen"
+      },
+      "ios": {
+        "bundleIdentifier": "com.thenghia.webtruyen"
+      }
+    }
+  }
+  
