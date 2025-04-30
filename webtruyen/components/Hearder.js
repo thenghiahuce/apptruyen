@@ -3,8 +3,9 @@ import {View, Text, TextInput, TouchableOpacity, StyleSheet, Alert} from 'react-
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import {useNavigation} from "@react-navigation/native";
+import { getAuth, signOut } from 'firebase/auth'; // Thêm import này
 
-const Hearder = ({  onSearch }) => {
+const Hearder = ({  onSearch, onTabPress }) => {
   const [userData, setUserData] = useState(null);
   const [userName, setUserName] = useState('');
   const [searchText, setSearchText] = React.useState('');
@@ -29,58 +30,6 @@ const Hearder = ({  onSearch }) => {
   const onProfilePress=()=>{
     navigation.navigate('Profile', { userData });
   }
-  const handleLogout = async () => {
-    try {
-      // Hiển thị alert xác nhận đăng xuất
-      Alert.alert(
-          "Xác nhận",
-          "Bạn có chắc chắn muốn đăng xuất?",
-          [
-            {
-              text: "Hủy",
-              style: "cancel"
-            },
-            {
-              text: "Đăng xuất",
-              onPress: async () => {
-                try {
-                  // Xóa tất cả dữ liệu người dùng khỏi AsyncStorage
-                  await AsyncStorage.multiRemove([
-                    'userData',
-                    // Thêm các key khác nếu cần
-                  ]);
-
-                  // Reset state
-                  setUserData(null);
-                  setUserName('');
-
-                  // Chuyển hướng về màn hình đăng nhập
-                  navigation.reset({
-                    index: 0,
-                    routes: [{ name: 'Login' }],
-                  });
-
-                  // Thông báo đăng xuất thành công
-                  Alert.alert('Thông báo', 'Đăng xuất thành công');
-
-                } catch (error) {
-                  console.error('Lỗi khi đăng xuất:', error);
-                  Alert.alert(
-                      'Lỗi',
-                      'Có lỗi xảy ra khi đăng xuất. Vui lòng thử lại!'
-                  );
-                }
-              },
-              style: "destructive"
-            }
-          ]
-      );
-    } catch (error) {
-      console.error('Lỗi:', error);
-      Alert.alert('Lỗi', 'Đã xảy ra lỗi không mong muốn');
-    }
-  };
-
 
 
   return (
@@ -95,9 +44,7 @@ const Hearder = ({  onSearch }) => {
             <Text style={styles.username}>{userName}</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity onPress={handleLogout} style={styles.logoutButton}>
-            <Ionicons name="log-out" size={18} color="#fff" />
-          </TouchableOpacity>
+
         </View>
       </View>
 
@@ -117,10 +64,16 @@ const Hearder = ({  onSearch }) => {
 
       {/* Tabs truyện */}
       <View style={styles.navTabs}>
-        <Text style={styles.tab}>Truyện Hot</Text>
-        <Text style={styles.tab}>Truyện Ngắn</Text>
-        <Text style={styles.tab}>Truyện Dài Tập</Text>
-        <Text style={styles.tab}>BXH</Text>
+        <TouchableOpacity onPress={() => onTabPress('hot')}>
+          <Text style={styles.tab}>Truyện Hot</Text>
+        </TouchableOpacity>
+        <TouchableOpacity onPress={() => onTabPress('short')}>
+          <Text style={styles.tab}>Truyện Ngắn</Text>
+        </TouchableOpacity>
+        <TouchableOpacity onPress={() => onTabPress('long')}>
+          <Text style={styles.tab}>Truyện Dài Tập</Text>
+        </TouchableOpacity>
+
       </View>
     </View>
   );

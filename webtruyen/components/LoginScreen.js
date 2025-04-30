@@ -12,8 +12,6 @@ import { collection, query, where, getDocs } from 'firebase/firestore';
 import { signInWithEmailAndPassword } from 'firebase/auth';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-
-
 // Gọi hàm:
 let userInfo= null
 const LoginScreen = ({ navigation }) => {
@@ -48,12 +46,19 @@ const LoginScreen = ({ navigation }) => {
 
   const checkAdminRole = async (email) => {
     try {
-      const adminQuery = query(
-          collection(db, 'admin'),
-          where('email', '==', email)
-      );
-      const querySnapshot = await getDocs(adminQuery);
-      return querySnapshot.docs.some(doc => doc.data().role === 'admin');
+      const usersRef = collection(db, 'users'); // collection 'users'
+      const q = query(usersRef, where('email', '==', email.trim()));
+      const querySnapshot = await getDocs(q);
+
+      console.log('Query snapshot:', querySnapshot.docs.map(doc => doc.data()));
+
+      if (!querySnapshot.empty) {
+        const userData = querySnapshot.docs[0].data();
+        const isAdmin = userData.role === 'admin';
+        console.log('Is admin:', isAdmin);
+        return isAdmin;
+      }
+      return false;
     } catch (error) {
       console.error("Lỗi khi kiểm tra quyền admin:", error);
       return false;
@@ -72,7 +77,6 @@ const LoginScreen = ({ navigation }) => {
 
     try {
       setLoading(true);
-      console.log('3. Đang xử lý đăng nhập với:', { email, password });
 
       // Đăng nhập với Firebase
       const userCredential = await signInWithEmailAndPassword(
@@ -80,30 +84,33 @@ const LoginScreen = ({ navigation }) => {
           email.trim(),
           password.trim()
       );
-      console.log('4. Đăng nhập thành công:', userCredential.user.email);
 
-      // Lấy thông tin user từ Firestore
+      // Kiểm tra admin trước
+      const adminQuery = query(
+          collection(db, 'admin'),
+          where('email', '==', email.trim())
+      );
+      const adminSnapshot = await getDocs(adminQuery);
+      // Kiểm tra admin
+      const isAdmin = await checkAdminRole(email.trim());
+      console.log('Admin check:', email.trim(), isAdmin);
+
+// Lấy thông tin user từ Firestore
       const usersRef = collection(db, "users");
       const q = query(usersRef, where("email", "==", email.trim()));
       const querySnapshot = await getDocs(q);
-      console.log('5. Tìm thấy user trong Firestore:', !querySnapshot.empty);
 
       if (!querySnapshot.empty) {
-        const userData = querySnapshot.docs[0].data();
-        console.log('6. Thông tin user:', userData);
+        const userData = {
+          ...querySnapshot.docs[0].data(),
+          role: isAdmin ? 'admin' : 'user'  // gán role dựa trên kết quả kiểm tra
+        };
+
+        // Log để debug
+        console.log('Final userData:', userData);
 
         // Lưu vào AsyncStorage
         await AsyncStorage.setItem('userData', JSON.stringify(userData));
-        console.log('7. Đã lưu vào AsyncStorage');
-
-        // Kiểm tra admin
-        const adminQuery = query(
-            collection(db, 'admin'),
-            where('email', '==', email.trim())
-        );
-        const adminSnapshot = await getDocs(adminQuery);
-        const isAdmin = adminSnapshot.docs.some(doc => doc.data().role === 'admin');
-        console.log('8. Là admin:', isAdmin);
 
         // Chuyển hướng
         navigation.reset({
@@ -113,24 +120,20 @@ const LoginScreen = ({ navigation }) => {
             params: { userData }
           }],
         });
-        console.log('9. Đã chuyển hướng');
       } else {
-        console.log('10. Không tìm thấy user trong Firestore');
         Alert.alert('Lỗi', 'Không tìm thấy thông tin người dùng');
       }
 
     } catch (error) {
-      console.log('11. Lỗi:', error.message);
+      console.error('Lỗi:', error);
       Alert.alert(
           'Lỗi đăng nhập',
           'Email hoặc mật khẩu không đúng!'
       );
     } finally {
       setLoading(false);
-      console.log('12. Kết thúc xử lý');
     }
   };
-
 
   return (
     <View style={styles.container}>

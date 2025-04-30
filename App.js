@@ -9,11 +9,10 @@ import StoryDetailScreen from './webtruyen/components/StoryDetailScreen';
 import LoginScreen from './webtruyen/components/LoginScreen';
 import RegisterScreen from './webtruyen/components/RegisterScreen';
 import AdminHome from './webtruyen/admincomponents/AdminHome';
-import AdminHeader from './webtruyen/admincomponents/AdminHearder';
 import AdminUser from './webtruyen/admincomponents/AdminUser';
 import AdminStory from './webtruyen/admincomponents/AdminStory';
 import AsyncStorage from "@react-native-async-storage/async-storage";
-
+import AdminHearder from './webtruyen/admincomponents/AdminHearder';
 const Stack = createStackNavigator();
 
 export default function App() {
@@ -30,6 +29,8 @@ export default function App() {
             const storedUserData = await AsyncStorage.getItem('userData');
             if (storedUserData) {
                 const parsedUserData = JSON.parse(storedUserData);
+                console.log("Stored User Data:", parsedUserData); // Log để debug
+                console.log("User Role:", parsedUserData.role);   // Log để debug
                 setUserData(parsedUserData);
                 setUsername(parsedUserData.username);
             }
@@ -51,10 +52,9 @@ export default function App() {
     <SafeAreaView style={styles.container}>
       <NavigationContainer>
           <Stack.Navigator
-              initialRouteName={userData ? (userData.role === 'AdminHome' ? 'AdminHome' : 'HomeScreen') : 'Login'}
+              initialRouteName={userData ? (userData.role === 'admin' ? 'AdminHome' : 'HomeScreen') : 'Login'}
               screenOptions={{ headerShown: false }}
           >
-
         <Stack.Screen name="HomeScreen">
         {props => (
           <HomeScreen
@@ -77,7 +77,7 @@ export default function App() {
           <Stack.Screen name="Profile" component={UserProfileScreen} />
           <Stack.Screen name="AdminUser" component={AdminUser} />
 <Stack.Screen name="AdminStory" component={AdminStory} />
-
+              <Stack.Screen name="AdminHearder" component={AdminHearder} />
           <Stack.Screen name="Hearder">
             {props => (
               <Hearder
@@ -86,7 +86,6 @@ export default function App() {
               />
             )}
           </Stack.Screen>
-
           <Stack.Screen name="AdminHome">
             {props => (
               <AdminHome
@@ -105,7 +104,6 @@ export default function App() {
             name="StoryDetail"
             component={StoryDetailScreen}
           />
-
         </Stack.Navigator>
       </NavigationContainer>
     </SafeAreaView>

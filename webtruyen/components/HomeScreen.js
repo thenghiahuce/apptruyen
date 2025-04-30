@@ -73,7 +73,7 @@ const HomeScreen = () => {
 
   const openEditModal = (story) => {
     setNewTitle(story.title);
-    setNewDesc(story.description);
+    setNewDesc(story.genre || '');
     setEditingId(story.id);
     setModalVisible(true);
   };
@@ -122,6 +122,19 @@ const HomeScreen = () => {
       </View>
     </TouchableOpacity>
   );
+  const handleTabPress = (type) => {
+    if (type === 'hot') {
+      const filtered = stories.filter(story => story.genre.includes('Hot'));
+      setStories(filtered);
+    } else if (type === 'short') {
+      const filtered = stories.filter(story => story.genre.includes('Truyện Ngắn'));
+      setStories(filtered);
+    } else if (type === 'long') {
+      const filtered = stories.filter(story => story.genre.includes('Truyện Dài Tập'));
+      setStories(filtered);
+    }
+  };
+
 
   return (
     <View style={styles.container}>
@@ -132,10 +145,7 @@ const HomeScreen = () => {
           setUsername('');
           navigation.navigate('Login');
         }}
-        onProfilePress={() => navigation.navigate('Profile',{
-          username: "Nguyẽn thế Nghia ",
-          email: "nguyenthnghiag@gmail",
-        })} // thay đổi theo màn hình bạn có
+        onTabPress={handleTabPress}
       />
 
       <FlatList
