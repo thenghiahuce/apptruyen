@@ -6,7 +6,7 @@ import {
   Text,
   StyleSheet,
   Image,
-  TouchableOpacity,
+  TouchableOpacity, Alert,
 } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
@@ -22,16 +22,18 @@ const AdminStory = () => {
 
   const pickImage = async () => {
     const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      // mediaTypes: ImagePicker.MediaType.IMAGE, // ✅ sửa dòng này
       allowsEditing: true,
       aspect: [3, 4],
       quality: 1,
+      base64:true
     });
 
     if (!result.canceled && result.assets && result.assets.length > 0) {
       setImage(result.assets[0].uri);
     }
   };
+
 
   const uploadImage = async (uri, fileName) => {
     const storage = getStorage();
@@ -44,7 +46,7 @@ const AdminStory = () => {
 
   const handleAddStory = async () => {
     if (!title || !category || !rating || !image) {
-      alert('Vui lòng điền đầy đủ thông tin');
+      Alert.alert('Vui lòng điền đầy đủ thông tin');
       return;
     }
 
@@ -59,13 +61,13 @@ const AdminStory = () => {
         createdAt: serverTimestamp(),
       });
 
-      setTitle('');
-      setCategory('');
-      setRating('');
-      setImage(null);
-      alert('Đã thêm truyện thành công!');
+      // setTitle('');
+      // setCategory('');
+      // setRating('');
+      // setImage(null);
+      Alert.alert('Đã thêm truyện thành công!');
     } catch (error) {
-      alert('Lỗi khi thêm truyện: ' + error.message);
+      Alert.alert('Lỗi khi thêm truyện: ' + error.message);
     } finally {
       setUploading(false);
     }

@@ -31,6 +31,7 @@ import {
   deleteObject
 } from 'firebase/storage';
 import * as ImagePicker from 'expo-image-picker';
+import {ImagePickerOptions} from "expo-image-picker/src/ImagePicker.types";
 
 const AdminHome = () => {
   const navigation = useNavigation();
@@ -43,10 +44,15 @@ const AdminHome = () => {
     genre: '',
     description: '',
     rating: 5,
-    imageUrl: '',
+    imageUrl: null,
     chapter: [],
     status: 'Đang cập nhật'
   });
+
+
+
+
+
 
   useEffect(() => {
     loadStories();
@@ -71,17 +77,18 @@ const AdminHome = () => {
 
   const pickImage = async () => {
     try {
+      setLoading(true);
       const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ImagePicker.MediaTypeOptions.Images,
         allowsEditing: true,
         aspect: [3, 4],
         quality: 1,
+        base64: true
       });
-
+      console.log('result',result)
       if (!result.canceled) {
-        setLoading(true);
-        const uploadUrl = await uploadImage(result.assets[0].uri);
-        setFormData(prev => ({ ...prev, imageUrl: uploadUrl }));
+        console.log('result', result.assets[0].uri)
+        // const uploadUrl = await uploadImage(result.assets[0].imageUri);
+        setFormData(prev => ({ ...prev, imageUrl: result.assets[0].uri }));
         setLoading(false);
       }
     } catch (error) {
