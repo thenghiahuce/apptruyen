@@ -1,15 +1,15 @@
-import { Text, SafeAreaView, StyleSheet } from 'react-native';
+import {  SafeAreaView, StyleSheet } from 'react-native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { NavigationContainer } from '@react-navigation/native';
 import React, { useState, useEffect } from 'react';
-import UserProfileScreen from './webtruyen/components/UserProfileScreen';
-import StoryDetailScreen from './webtruyen/components/StoryDetailScreen';
-import LoginScreen from './webtruyen/components/LoginScreen';
-import RegisterScreen from './webtruyen/components/RegisterScreen';
-import Home from "./webtruyen/src/Home";
-import AddStoryScreen from "./webtruyen/components/AddStoryScreen";
-import EditStoryScreen from "./webtruyen/components/EditStoryScreen";
-import UserManagerScreen from "./webtruyen/admincomponents/UserManagerScreen";
+import UserProfileScreen from './components/UserProfileScreen';
+import StoryDetailScreen from './components/StoryDetailScreen';
+import LoginScreen from './components/LoginScreen';
+import RegisterScreen from './components/RegisterScreen';
+import Home from "./src/Home";
+import AddStoryScreen from "./components/AddStoryScreen";
+import EditStoryScreen from "./components/EditStoryScreen";
+import UserManagerScreen from "./admincomponents/UserManagerScreen";
 const Stack = createStackNavigator();
 
 export default function App() {

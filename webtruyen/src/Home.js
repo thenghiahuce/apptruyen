@@ -11,7 +11,7 @@ import {
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import AdminHeader from '../admincomponents/AdminHearder';
-import { db } from '../../firebaseConfig';
+import { db } from '../firebaseConfig';
 import {
     collection,
     deleteDoc,

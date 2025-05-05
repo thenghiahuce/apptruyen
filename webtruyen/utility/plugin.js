@@ -1,6 +1,6 @@
 import {collection, getDocs, query, where} from "firebase/firestore";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import {db} from "../../firebaseConfig";
+import {db} from "../firebaseConfig";
 
 const checkAdminRole = async (email) => {
     try {

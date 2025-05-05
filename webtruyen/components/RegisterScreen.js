@@ -5,7 +5,7 @@ import {
 } from 'react-native';
 import { createUserWithEmailAndPassword } from 'firebase/auth';
 import { collection, addDoc, query, where, getDocs } from 'firebase/firestore';
-import { auth, db } from '../../firebaseConfig';
+import { auth, db } from '../firebaseConfig';
 
 const RegisterScreen = ({ navigation }) => {
   const [username, setUsername] = useState('');

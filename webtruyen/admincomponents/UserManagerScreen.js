@@ -3,7 +3,7 @@ import {View, Text, FlatList, TouchableOpacity, Alert, StyleSheet, RefreshContro
 import {Ionicons} from "@expo/vector-icons";
 import {useNavigation} from "@react-navigation/native";
 import {collection, deleteDoc, doc, getDocs, orderBy, query} from "firebase/firestore";
-import {db} from "../../firebaseConfig";
+import {db} from "../firebaseConfig";
 
 const initialUsers = [
     {

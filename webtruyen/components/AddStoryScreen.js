@@ -11,7 +11,7 @@ import {
     Modal, ActivityIndicator, TouchableWithoutFeedback, Keyboard,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { db } from '../../firebaseConfig';
+import { db } from '../firebaseConfig';
 import {
     collection,
     addDoc,
