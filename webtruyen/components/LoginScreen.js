@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React from 'react';
+import { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -11,9 +12,9 @@ import { db, auth } from '../../firebaseConfig';
 import { collection, query, where, getDocs } from 'firebase/firestore';
 import { signInWithEmailAndPassword } from 'firebase/auth';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import {checkAdminRole, isAdmin, isLogin} from "../utility/plugin";
 
 // Gọi hàm:
-let userInfo= null
 const LoginScreen = ({ navigation }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -41,27 +42,6 @@ const LoginScreen = ({ navigation }) => {
     } catch (error) {
       console.error("Lỗi khi lấy thông tin user:", error);
       throw error;
-    }
-  };
-
-  const checkAdminRole = async (email) => {
-    try {
-      const usersRef = collection(db, 'users'); // collection 'users'
-      const q = query(usersRef, where('email', '==', email.trim()));
-      const querySnapshot = await getDocs(q);
-
-      console.log('Query snapshot:', querySnapshot.docs.map(doc => doc.data()));
-
-      if (!querySnapshot.empty) {
-        const userData = querySnapshot.docs[0].data();
-        const isAdmin = userData.role === 'admin';
-        console.log('Is admin:', isAdmin);
-        return isAdmin;
-      }
-      return false;
-    } catch (error) {
-      console.error("Lỗi khi kiểm tra quyền admin:", error);
-      return false;
     }
   };
 
@@ -116,8 +96,7 @@ const LoginScreen = ({ navigation }) => {
         navigation.reset({
           index: 0,
           routes: [{
-            name: isAdmin ? 'AdminHome' : 'HomeScreen',
-            params: { userData }
+            name: 'Home',
           }],
         });
       } else {
@@ -134,6 +113,16 @@ const LoginScreen = ({ navigation }) => {
       setLoading(false);
     }
   };
+  useEffect(()=>{
+    const checkRule= async () => {
+      const check = await isLogin()
+      if (check) {
+        navigation.navigate('Home')
+      }
+    }
+    checkRule().then(r => {})
+
+  },[])
 
   return (
     <View style={styles.container}>

@@ -32,6 +32,7 @@ const UserProfileScreen = ({ route, navigation }) => {
       await signOut(auth);
 
       // Xóa dữ liệu local
+      await AsyncStorage.removeItem('userData');
       await AsyncStorage.clear(); // hoặc AsyncStorage.multiRemove(['userData'])
 
       // Reset navigation và chuyển đến màn hình Login
@@ -84,7 +85,30 @@ const UserProfileScreen = ({ route, navigation }) => {
 
               <Text style={styles.label}>Email:</Text>
               <Text style={styles.value}>{userData?.email || 'Chưa có email'}</Text>
+              <Text style={styles.value}>{userData?.role}</Text>
             </View>
+            {
+              userData?.role === 'admin' &&(
+                <TouchableOpacity
+                    style={{
+                      flexDirection: 'row',
+                      backgroundColor: '#0000ff',
+                      padding: 15,
+                      borderRadius: 8,
+                      justifyContent: 'center',
+                      alignItems: 'center',
+                      marginTop: 10,
+                    }}
+                    onPress={() => navigation.navigate('UserManagerScreen')}
+                >
+                  <Ionicons name="people" size={24} color="#fff" />
+                  <Text style={styles.logoutText}>
+                    {'Quản lý user'}
+                  </Text>
+                </TouchableOpacity>
+
+                )
+            }
 
             <TouchableOpacity
                 style={styles.logoutButton}

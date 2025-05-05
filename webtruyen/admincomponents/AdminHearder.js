@@ -100,28 +100,6 @@ const AdminHeader = ({  onSearch }) => {
             </TouchableOpacity>
           </View>
         </View>
-
-        {/* Thanh tìm kiếm */}
-        <View style={styles.searchContainer}>
-          <TextInput
-              placeholder="Tìm kiếm..."
-              placeholderTextColor="#ccc"
-              value={searchText}
-              onChangeText={setSearchText}
-              style={styles.searchInput}
-          />
-          <TouchableOpacity onPress={() => onSearch?.(searchText)}>
-            <Ionicons name="search" size={20} color="#ccc" />
-          </TouchableOpacity>
-        </View>
-
-        {/* Tabs truyện */}
-        <View style={styles.navTabs}>
-          <Text style={styles.tab}>Truyện Hot</Text>
-          <Text style={styles.tab}>Truyện Ngắn</Text>
-          <Text style={styles.tab}>Truyện Dài Tập</Text>
-          <Text style={styles.tab}>BXH</Text>
-        </View>
       </View>
   );
 };
@@ -162,20 +140,7 @@ const styles = StyleSheet.create({
     borderRadius: 6,
     padding: 6,
   },
-  searchContainer: {
-    flexDirection: 'row',
-    backgroundColor: '#2c2c2e',
-    borderRadius: 12,
-    alignItems: 'center',
-    paddingHorizontal: 10,
-    marginHorizontal: 10,
-    marginTop: 10,
-  },
-  searchInput: {
-    color: '#fff',
-    flex: 1,
-    height: 40,
-  },
+
   navTabs: {
     flexDirection: 'row',
     justifyContent: 'space-around',
