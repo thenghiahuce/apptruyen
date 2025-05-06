@@ -120,7 +120,7 @@ const EditStoryScreen = ({ route }) => {
                 </TouchableOpacity>
                 <Text style={styles.headerText}>Sửa Truyện</Text>
             </View>
-            <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+            {/*<TouchableWithoutFeedback onPress={Keyboard.dismiss}>*/}
                 <ScrollView style={{ flex: 1, padding: 15 }}>
                     {loading && (
                         <ActivityIndicator size="large" color="#0000ff" style={styles.loader} />
@@ -182,7 +182,7 @@ const EditStoryScreen = ({ route }) => {
                         </TouchableOpacity>
                     </View>
                 </ScrollView>
-            </TouchableWithoutFeedback>
+            {/*</TouchableWithoutFeedback>*/}
             <Modal visible={modalVisible} animationType="slide" transparent={true}>
                 <View style={styles.modalContainer}>
                     <View style={styles.modalContent}>

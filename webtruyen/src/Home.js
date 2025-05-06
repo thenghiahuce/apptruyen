@@ -99,30 +99,17 @@ const Home = () => {
     };
 
     const handleDeleteStory = async (story) => {
-        if (!story || !story.id) {
-            Alert.alert('Lỗi', 'Không thể xác định truyện cần xóa');
-            return;
-        }
-        Alert.alert('Xác nhận', 'Bạn có chắc chắn muốn xóa truyện này?', [
-            { text: 'Hủy', style: 'cancel' },
-            {
-                text: 'Xóa',
-                style: 'destructive',
-                onPress: async () => {
-                    try {
-                        setLoading(true);
-                        await deleteDoc(doc(db, 'stories', story.id));
-                        Alert.alert('Thành công', 'Xóa truyện thành công');
-                        await loadStories();
-                    } catch (error) {
-                        console.error('Error deleting story:', error);
-                        Alert.alert('Lỗi', 'Không thể xóa truyện');
-                    } finally {
-                        setLoading(false);
-                    }
-                },
-            },
-        ]);
+        try {
+                setLoading(true);
+                await deleteDoc(doc(db, 'stories', story.id));
+                Alert.alert('Thành công', 'Xóa truyện thành công');
+                await loadStories();
+            } catch (error) {
+                console.error('Error deleting story:', error);
+                Alert.alert('Lỗi', 'Không thể xóa truyện');
+            } finally {
+                setLoading(false);
+            }
     };
 
     const renderStoryItem = ({ item }) => (
