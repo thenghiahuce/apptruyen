@@ -98,7 +98,7 @@ const EditStoryScreen = ({ route }) => {
 
     useEffect(() => {
         const handleData = () => {
-            console.log('Story data from Firestore:', story);
+            // console.log('Story data from Firestore:', story);
             setFormData({
                 title: story.title || '',
                 genre: story.genre && typeof story.genre === 'object' ? story.genre : null,

@@ -72,7 +72,7 @@ const Home = () => {
                 }
                 return { id: doc.id, ...data };
             });
-            console.log('Loaded stories:', storiesData);
+            // console.log('Loaded stories:', storiesData);
             setStories(storiesData);
             setFilteredStories(storiesData);
         } catch (error) {
@@ -99,6 +99,10 @@ const Home = () => {
     };
 
     const handleDeleteStory = async (story) => {
+        if (!story || !story.id) {
+            Alert.alert('Lỗi', 'Không thể xác định truyện cần xóa');
+            return;
+        }
         Alert.alert('Xác nhận', 'Bạn có chắc chắn muốn xóa truyện này?', [
             { text: 'Hủy', style: 'cancel' },
             {

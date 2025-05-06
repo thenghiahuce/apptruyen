@@ -32,7 +32,7 @@ const AddStoryScreen = () => {
         rating: 5,
         imageUrl: null,
         chapter: [],
-        id: getRandomInt(1,10000),
+        // id: getRandomInt(1,10000),
     });
 
     const pickImage = async () => {
