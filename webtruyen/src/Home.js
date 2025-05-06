@@ -1,4 +1,4 @@
-import React, {useState, useEffect, useRef} from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
     View,
     Text,
@@ -7,7 +7,9 @@ import {
     TouchableOpacity,
     StyleSheet,
     Alert,
-    ActivityIndicator, RefreshControl, TextInput, ScrollView,
+    ActivityIndicator,
+    RefreshControl,
+    TextInput,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import AdminHeader from '../admincomponents/AdminHearder';
@@ -18,11 +20,12 @@ import {
     doc,
     getDocs,
     query,
-    orderBy
+    orderBy,
+    updateDoc,
 } from 'firebase/firestore';
+import { Ionicons } from '@expo/vector-icons';
+import { getCategory, isAdmin } from '../utility/plugin';
 
-import {Ionicons} from "@expo/vector-icons";
-import {getCategory, isAdmin} from "../utility/plugin";
 const Home = () => {
     const navigation = useNavigation();
     const [stories, setStories] = useState([]);
@@ -31,43 +34,53 @@ const Home = () => {
     const [selectedId, setSelectedId] = useState(0);
     const flatListRef = useRef(null);
     const [check, setCheck] = useState(false);
-
-    const [filteredStories, setFilteredStories] = useState([]); // Danh sách đã lọc
-    const [searchQuery, setSearchQuery] = useState(''); // Từ khóa tìm kiếm
+    const [filteredStories, setFilteredStories] = useState([]);
+    const [searchQuery, setSearchQuery] = useState('');
 
     const handleSelect = (item, index) => {
         setSelectedId(item.id);
         flatListRef.current?.scrollToIndex({ index, animated: true });
     };
-    const onRefresh =()=>{
-    loadStories().then(r => {});
-    }
+
+    const onRefresh = () => {
+        setRefreshing(true);
+        loadStories();
+    };
+
     useEffect(() => {
-       const checkAdmin = async()=>{
-           const a = await isAdmin();
-           setCheck(await isAdmin())
-       }
-            checkAdmin().then(r => {})
-        loadStories().then(r => {});
+        const checkAdmin = async () => {
+            const a = await isAdmin();
+            setCheck(a);
+        };
+        checkAdmin();
+        loadStories();
     }, []);
 
     const loadStories = async () => {
         try {
-            const q = query(collection(db, "stories"), orderBy("createAt", "desc"));
+            const q = query(collection(db, 'stories'), orderBy('createAt', 'desc'));
             const querySnapshot = await getDocs(q);
-            const storiesData = querySnapshot.docs.map(doc => ({
-                id: doc.id,
-                ...doc.data()
-            }));
+            const storiesData = querySnapshot.docs.map((doc) => {
+                const data = doc.data();
+                if (!Array.isArray(data.chapter)) {
+                    console.warn(`Invalid chapter for ${doc.id}, fixing to []`);
+                    updateDoc(doc.ref, { chapter: [] });
+                }
+                if (!data.genre || typeof data.genre !== 'object') {
+                    console.warn(`Invalid genre for ${doc.id}, fixing to { id: 0, value: 'Tất cả' }`);
+                    updateDoc(doc.ref, { genre: { id: '0', value: 'Tất cả' } });
+                }
+                return { id: doc.id, ...data };
+            });
+            console.log('Loaded stories:', storiesData);
             setStories(storiesData);
             setFilteredStories(storiesData);
-            setLoading(false);
-            setRefreshing(false);
         } catch (error) {
-            console.error("Error loading stories:", error);
-            Alert.alert("Lỗi", "Không thể tải danh sách truyện");
+            console.error('Error loading stories:', error);
+            Alert.alert('Lỗi', 'Không thể tải danh sách truyện');
         } finally {
             setLoading(false);
+            setRefreshing(false);
         }
     };
 
@@ -81,76 +94,71 @@ const Home = () => {
             );
             setFilteredStories(filtered);
         } else {
-            setFilteredStories(stories); // Nếu không có từ khóa, hiển thị toàn bộ danh sách
+            setFilteredStories(stories);
         }
     };
+
     const handleDeleteStory = async (story) => {
-        Alert.alert(
-            "Xác nhận",
-            "Bạn có chắc chắn muốn xóa truyện này?",
-            [
-                { text: "Hủy", style: "cancel" },
-                {
-                    text: "Xóa",
-                    style: "destructive",
-                    onPress: async () => {
-                        try {
-                            setLoading(true);
-                            await deleteDoc(doc(db, "stories", story.id));
-
-                            Alert.alert("Thành công", "Xóa truyện thành công");
-                            await loadStories();
-                        } catch (error) {
-                            console.error("Error deleting story:", error);
-                            Alert.alert("Lỗi", "Không thể xóa truyện");
-                        } finally {
-                            setLoading(false);
-                        }
+        Alert.alert('Xác nhận', 'Bạn có chắc chắn muốn xóa truyện này?', [
+            { text: 'Hủy', style: 'cancel' },
+            {
+                text: 'Xóa',
+                style: 'destructive',
+                onPress: async () => {
+                    try {
+                        setLoading(true);
+                        await deleteDoc(doc(db, 'stories', story.id));
+                        Alert.alert('Thành công', 'Xóa truyện thành công');
+                        await loadStories();
+                    } catch (error) {
+                        console.error('Error deleting story:', error);
+                        Alert.alert('Lỗi', 'Không thể xóa truyện');
+                    } finally {
+                        setLoading(false);
                     }
-                }
-            ]
-        );
+                },
+            },
+        ]);
     };
-
 
     const renderStoryItem = ({ item }) => (
-        <TouchableOpacity style={styles.storyItem} onPress={()=>{
-            navigation.navigate('StoryDetailScreen',{
-                story:item
-            })
-        }
-        }>
+        <TouchableOpacity
+            style={styles.storyItem}
+            onPress={() => {
+                navigation.navigate('StoryDetailScreen', { story: item });
+            }}
+        >
             <Image source={{ uri: item.imageUrl }} style={styles.storyImage} />
             <View style={styles.storyInfo}>
                 <Text style={styles.storyTitle}>{item.title}</Text>
-                <Text style={styles.storyGenre}>{item.genre.value}</Text>
-                <Text style={styles.storyStatus} numberOfLines={1}>{item.description}</Text>
+                <Text style={styles.storyGenre}>
+                    {item.genre && item.genre.value ? item.genre.value : 'Không xác định'}
+                </Text>
+                <Text style={styles.storyStatus} numberOfLines={1}>
+                    {item.description}
+                </Text>
             </View>
-            {
-                check && (
-                    <View style={styles.actionButtons}>
-                        <TouchableOpacity
-                            style={[styles.actionButton, styles.editButton]}
-                            onPress={() => {
-                                navigation.navigate('EditStoryScreen', {
-                                    story: item,
-                                })
-                            }}
-                        >
-                            <Text style={styles.buttonText}>Sửa</Text>
-                        </TouchableOpacity>
-                        <TouchableOpacity
-                            style={[styles.actionButton, styles.deleteButton]}
-                            onPress={() => handleDeleteStory(item)}
-                        >
-                            <Text style={styles.buttonText}>Xóa</Text>
-                        </TouchableOpacity>
-                    </View>
-                )
-            }
-
+            {check && (
+                <View style={styles.actionButtons}>
+                    <TouchableOpacity
+                        style={[styles.actionButton, styles.editButton]}
+                        onPress={() => {
+                            navigation.navigate('EditStoryScreen', { story: item });
+                        }}
+                    >
+                        <Text style={styles.buttonText}>Sửa</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                        style={[styles.actionButton, styles.deleteButton]}
+                        onPress={() => handleDeleteStory(item)}
+                    >
+                        <Text style={styles.buttonText}>Xóa</Text>
+                    </TouchableOpacity>
+                </View>
+            )}
         </TouchableOpacity>
     );
+
     const renderItem = ({ item, index }) => {
         const isSelected = item.id === selectedId;
         return (
@@ -160,90 +168,83 @@ const Home = () => {
                         flexDirection: 'row',
                         justifyContent: 'space-around',
                         paddingHorizontal: 10,
-                        paddingVertical:8,
+                        paddingVertical: 8,
                         backgroundColor: '#1c1c1e',
                     },
-                    { backgroundColor: isSelected ? "#1c1c1e" : "#eee" }
+                    { backgroundColor: isSelected ? '#1c1c1e' : '#eee' },
                 ]}
                 onPress={() => handleSelect(item, index)}
             >
-                <Text style={{ color: isSelected ? "#fff" : "#333" }}>
-                    {item.value}
-                </Text>
+                <Text style={{ color: isSelected ? '#fff' : '#333' }}>{item.value}</Text>
             </TouchableOpacity>
         );
     };
+
+    const renderHeader = () => (
+        <View>
+            <View style={{ backgroundColor: '#1c1c1e', paddingBottom: 4 }}>
+                <AdminHeader />
+                <View style={styles.searchContainer}>
+                    <TextInput
+                        placeholder="Tìm kiếm..."
+                        placeholderTextColor="#ccc"
+                        value={searchQuery}
+                        onChangeText={handleSearch}
+                        style={styles.searchInput}
+                    />
+                    <TouchableOpacity onPress={() => setSearchQuery('')}>
+                        <Ionicons name="close" size={20} color="#ccc" />
+                    </TouchableOpacity>
+                </View>
+            </View>
+            <FlatList
+                ref={flatListRef}
+                data={getCategory()}
+                horizontal
+                keyExtractor={(item) => item.id.toString()}
+                renderItem={renderItem}
+                showsHorizontalScrollIndicator={false}
+            />
+        </View>
+    );
+
     return (
         <View style={styles.container}>
-            <View style={{
-                backgroundColor: '#1c1c1e',
-                paddingBottom: 4,
-            }}>
-            <AdminHeader />
-            <View style={styles.searchContainer}>
-                <TextInput
-                    placeholder="Tìm kiếm..."
-                    placeholderTextColor="#ccc"
-                    value={searchQuery}
-                    onChangeText={handleSearch}
-                    style={styles.searchInput}
-                />
-                <TouchableOpacity onPress={()=>setSearchQuery('')}>
-                    <Ionicons name="close" size={20} color="#ccc" />
-                </TouchableOpacity>
-            </View>
-            </View>
-            <View >
-                <FlatList
-                    ref={flatListRef}
-                    data={getCategory()}
-                    horizontal
-                    keyExtractor={(item) => item.id.toString()}
-                    renderItem={renderItem}
-                    showsHorizontalScrollIndicator={false}
-                />
-            </View>
-
-<ScrollView>
-
             {loading ? (
                 <ActivityIndicator size="large" color="#0000ff" style={styles.loader} />
             ) : (
                 <FlatList
-                    style={{
-                    flex:1,
-                }}
-                    data={selectedId ===0 ? filteredStories :filteredStories.filter(story => story.genre?.id === selectedId)}
+                    data={
+                        selectedId === 0
+                            ? filteredStories
+                            : filteredStories.filter((story) => story.genre?.id === selectedId)
+                    }
                     renderItem={renderStoryItem}
-                    keyExtractor={item => item.id}
+                    keyExtractor={(item) => item.id}
                     contentContainerStyle={styles.listContainer}
                     refreshControl={
                         <RefreshControl
                             refreshing={refreshing}
                             onRefresh={onRefresh}
-                            colors={['#0000ff']} // Màu của indicator trên Android
-                            tintColor="#0000ff" // Màu của indicator trên iOS
+                            colors={['#0000ff']}
+                            tintColor="#0000ff"
                         />
                     }
-                    nestedScrollEnabled={true}
+                    ListHeaderComponent={renderHeader}
                 />
             )}
-</ScrollView>
-            {
-                check && (
-            <View style={styles.floatingButtonContainer}>
-            <TouchableOpacity
-                style={styles.addButton}
-                onPress={() => {
-                  navigation.navigate('AddStoryScreen')
-                }}
-            >
-                <Text style={styles.addButtonText}>+</Text>
-            </TouchableOpacity>
-            </View>
-                )
-            }
-
+            {check && (
+                <View style={styles.floatingButtonContainer}>
+                    <TouchableOpacity
+                        style={styles.addButton}
+                        onPress={() => {
+                            navigation.navigate('AddStoryScreen');
+                        }}
+                    >
+                        <Text style={styles.addButtonText}>+</Text>
+                    </TouchableOpacity>
+                </View>
+            )}
         </View>
     );
 };
@@ -255,8 +256,7 @@ const styles = StyleSheet.create({
     },
     listContainer: {
         padding: 10,
-        flex:1,
-        flexGrow: 1
+        flexGrow: 1,
     },
     storyItem: {
         backgroundColor: 'white',
@@ -394,12 +394,12 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         alignItems: 'center',
     },
-    floatingButtonContainer:{
+    floatingButtonContainer: {
         position: 'absolute',
         bottom: 0,
         right: 0,
-        zIndex: 1000, // Đảm bảo container của nút có zIndex cao
-        elevation: 10, // Đảm bảo container nổi lên trên Android
+        zIndex: 1000,
+        elevation: 10,
     },
     navTabs: {
         flexDirection: 'row',
@@ -414,7 +414,7 @@ const styles = StyleSheet.create({
     },
     searchContainer: {
         flexDirection: 'row',
-        backgroundColor: '#2c2c2e',
+        backgroundColor: '#2c2e2e',
         borderRadius: 12,
         alignItems: 'center',
         paddingHorizontal: 10,

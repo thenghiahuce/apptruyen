@@ -8,20 +8,18 @@ import {
     StyleSheet,
     Alert,
     TextInput,
-    Modal, ActivityIndicator, TouchableWithoutFeedback, Keyboard,
+    Modal,
+    ActivityIndicator,
+    TouchableWithoutFeedback,
+    Keyboard,
+    ScrollView,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { db } from '../firebaseConfig';
-import {
-    collection,
-    addDoc,
-    doc,
-    updateDoc
-} from 'firebase/firestore';
+import { collection, addDoc, doc, updateDoc } from 'firebase/firestore';
 import * as ImagePicker from 'expo-image-picker';
-import {ImagePickerOptions} from "expo-image-picker/src/ImagePicker.types";
-import {Ionicons} from "@expo/vector-icons";
-import {getCategory} from "../utility/plugin";
+import { Ionicons } from '@expo/vector-icons';
+import { getCategory } from '../utility/plugin';
 
 const EditStoryScreen = ({ route }) => {
     const navigation = useNavigation();
@@ -30,12 +28,12 @@ const EditStoryScreen = ({ route }) => {
     const [modalVisible, setModalVisible] = useState(false);
     const [formData, setFormData] = useState({
         title: '',
-        genre: '',
+        genre: null,
         description: '',
         rating: 5,
         imageUrl: null,
         chapter: [],
-        status: 'Đang cập nhật'
+        status: 'Đang cập nhật',
     });
 
     const pickImage = async () => {
@@ -45,85 +43,85 @@ const EditStoryScreen = ({ route }) => {
                 allowsEditing: true,
                 aspect: [3, 4],
                 quality: 1,
-                base64: true
+                base64: true,
             });
-            console.log('result',result)
             if (!result.canceled) {
-                console.log('result', result.assets[0].uri)
-                // const uploadUrl = await uploadImage(result.assets[0].imageUri);
-                setFormData(prev => ({ ...prev, imageUrl: result.assets[0].uri }));
-                setLoading(false);
+                setFormData((prev) => ({ ...prev, imageUrl: result.assets[0].uri }));
             }
         } catch (error) {
-            Alert.alert("Lỗi", "Không thể tải ảnh lên");
+            Alert.alert('Lỗi', 'Không thể tải ảnh lên');
+        } finally {
             setLoading(false);
         }
     };
 
     const handleUpdateStory = async (storyId, updatedFields) => {
         try {
+            // console.log('Updating story with fields:', updatedFields);
+            const sanitizedFields = {
+                title: updatedFields.title || '',
+                genre: updatedFields.genre && typeof updatedFields.genre === 'object' ? updatedFields.genre : null,
+                description: updatedFields.description || '',
+                rating: updatedFields.rating || 5,
+                imageUrl: updatedFields.imageUrl || null,
+                chapter: Array.isArray(updatedFields.chapter) ? updatedFields.chapter : [],
+                status: updatedFields.status || 'Đang cập nhật',
+            };
             const cleanFields = Object.fromEntries(
-                Object.entries(updatedFields).filter(([_, v]) => v !== undefined)
+                Object.entries(sanitizedFields).filter(([_, v]) => v !== undefined)
             );
-            await updateDoc(doc(db, "stories", storyId), {
+            // console.log('Cleaned fields before update:', cleanFields);
+            await updateDoc(doc(db, 'stories', storyId), {
                 ...cleanFields,
-                updateAt: new Date().toISOString()
+                updateAt: new Date().toISOString(),
             });
-
-            Alert.alert("Thành công", "Cập nhật truyện thành công");
-            navigation.goBack()
+            Alert.alert('Thành công', 'Cập nhật truyện thành công');
+            navigation.goBack();
         } catch (error) {
-            console.error("Error updating story:", error);
-            Alert.alert("Lỗi", "Không thể cập nhật truyện");
+            console.error('Error updating story:', error);
+            Alert.alert('Lỗi', 'Không thể cập nhật truyện');
         }
     };
 
-
     const renderItem = ({ item }) => (
-        <TouchableOpacity onPress={()=>{
-            setFormData(prev => ({ ...prev, genre: item }));
-            setModalVisible(false);
-        }}>
-
+        <TouchableOpacity
+            onPress={() => {
+                setFormData((prev) => ({ ...prev, genre: item }));
+                setModalVisible(false);
+            }}
+        >
             <View style={styles.item}>
                 <Text style={styles.title}>{item.value}</Text>
             </View>
         </TouchableOpacity>
-
     );
-    useEffect(() => {
 
+    useEffect(() => {
         const handleData = () => {
+            console.log('Story data from Firestore:', story);
             setFormData({
-                title: story.title,
-                genre: story.genre,
-                description: story.description,
-                rating: story.rating,
-                imageUrl: story.imageUrl,
-                chapter: story.chapter,
-                status: story.status
-            })
-        }
-        handleData()
+                title: story.title || '',
+                genre: story.genre && typeof story.genre === 'object' ? story.genre : null,
+                description: story.description || '',
+                rating: story.rating || 5,
+                imageUrl: story.imageUrl || null,
+                chapter: Array.isArray(story.chapter) ? story.chapter : [],
+                status: story.status || 'Đang cập nhật',
+            });
+        };
+        handleData();
     }, [story]);
+
     return (
         <View style={styles.container}>
-
             <View style={styles.header}>
-                <TouchableOpacity
-                    style={styles.backButton}
-                    onPress={() => navigation.goBack()}
-                >
+                <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
                     <Ionicons name="arrow-back" size={24} color="white" />
                 </TouchableOpacity>
                 <Text style={styles.headerText}>Sửa Truyện</Text>
             </View>
             <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-                <View style={{
-                    flex:1,
-                    padding: 15,
-
-                }}>
+                <ScrollView style={{ flex: 1, padding: 15 }}>
                     {loading && (
                         <ActivityIndicator size="large" color="#0000ff" style={styles.loader} />
                     )}
@@ -134,112 +132,75 @@ const EditStoryScreen = ({ route }) => {
                             <Text style={styles.imagePickerText}>Chọn ảnh</Text>
                         )}
                     </TouchableOpacity>
-
                     <TextInput
                         style={styles.input}
                         placeholder="Tiêu đề"
-                        placeholderTextColor={"#242424"}
+                        placeholderTextColor="#242424"
                         value={formData.title}
-                        onChangeText={text => setFormData(prev => ({ ...prev, title: text }))}
+                        onChangeText={(text) => setFormData((prev) => ({ ...prev, title: text }))}
                     />
                     <TouchableOpacity
                         style={{
-                            padding:10,
+                            padding: 10,
                             borderWidth: 1,
-                            borderColor:"#ddd",
-                            borderRadius:4,
-                            marginBottom:8
+                            borderColor: '#ddd',
+                            borderRadius: 4,
+                            marginBottom: 8,
                         }}
-                        onPress={()=>{
-                            setModalVisible(true);
-
-                        }}>
-                        {
-                            formData && formData.genre && formData.genre.value ? (
-                                <Text style={{
-                                    fontSize: 16,
-                                    color:"#242424"
-                                }}>
-                                    {formData.genre.value}
-                                </Text>
-                            ):(
-                                <Text style={{
-                                    fontSize: 16,
-                                    color:"#242424"
-                                }}>
-                                    Danh mục/Thể loại
-                                </Text>
-                            )
-                        }
+                        onPress={() => setModalVisible(true)}
+                    >
+                        {formData.genre && formData.genre.value ? (
+                            <Text style={{ fontSize: 16, color: '#242424' }}>{formData.genre.value}</Text>
+                        ) : (
+                            <Text style={{ fontSize: 16, color: '#242424' }}>Danh mục/Thể loại</Text>
+                        )}
                     </TouchableOpacity>
-
-
                     <TextInput
-                        placeholderTextColor={"#242424"}
+                        placeholderTextColor="#242424"
                         style={[styles.input, styles.textArea]}
                         placeholder="Nội dung"
                         value={formData.description}
-                        onChangeText={text => setFormData(prev => ({ ...prev, description: text }))}
+                        onChangeText={(text) => setFormData((prev) => ({ ...prev, description: text }))}
                         multiline
                     />
-
                     <View style={styles.modalButtons}>
                         <TouchableOpacity
                             style={[styles.modalButton, styles.saveButton]}
-                            onPress={
-                                ()=>handleUpdateStory(
-                                story.id,
-                                {
+                            onPress={() =>
+                                handleUpdateStory(story.id, {
                                     title: formData.title,
                                     genre: formData.genre,
                                     description: formData.description,
                                     rating: formData.rating,
                                     imageUrl: formData.imageUrl,
                                     chapter: formData.chapter,
-                                    status: formData.status
-                                }
-                            )}
+                                    status: formData.status,
+                                })
+                            }
                         >
-                            <Text style={styles.buttonText}>
-                                {'Lưu'}
-                            </Text>
+                            <Text style={styles.buttonText}>{'Lưu'}</Text>
                         </TouchableOpacity>
                     </View>
-                </View>
+                </ScrollView>
             </TouchableWithoutFeedback>
-            <Modal
-                visible={modalVisible}
-                animationType="slide"
-                transparent={true}
-            >
+            <Modal visible={modalVisible} animationType="slide" transparent={true}>
                 <View style={styles.modalContainer}>
                     <View style={styles.modalContent}>
-                        <View style={{
-                            padding:12,
-                            alignItems: 'left',
-                        }}>
-                            <TouchableOpacity
-                                onPress={() => {
-                                    setModalVisible(false);
-                                }}
-                            >
-                                <Text style={{
-                                    textAlign: 'end',
-                                }}>
+                        <View style={{ padding: 12, alignItems: 'left' }}>
+                            <TouchableOpacity onPress={() => setModalVisible(false)}>
+                                <Text style={{ textAlign: 'end' }}>
                                     <Ionicons name="close" size={20} color="#242424" />
                                 </Text>
                             </TouchableOpacity>
                         </View>
                         <FlatList
-                            data={getCategory()} // Dữ liệu từ hàm getCategory
-                            renderItem={renderItem} // Hàm render từng item
-                            keyExtractor={(item) => item.id.toString()} // Key duy nhất cho mỗi item
+                            data={Array.isArray(getCategory()) ? getCategory() : []}
+                            renderItem={renderItem}
+                            keyExtractor={(item) => item.id.toString()}
                         />
                     </View>
-
                 </View>
             </Modal>
-
         </View>
     );
 };
@@ -251,8 +212,8 @@ const styles = StyleSheet.create({
     },
     listContainer: {
         padding: 10,
-        flex:1,
-        zIndex: 1, // Đặt zIndex thấp hơn addButton
+        flex: 1,
+        zIndex: 1,
         overflow: 'visible',
     },
     storyItem: {
@@ -261,8 +222,8 @@ const styles = StyleSheet.create({
         padding: 10,
         marginBottom: 10,
         borderRadius: 8,
-        elevation: 1, // Giảm elevation (thấp hơn addButton)
-        zIndex: 1, // Đặt zIndex thấp hơn addButton
+        elevation: 1,
+        zIndex: 1,
     },
     storyImage: {
         width: 80,
@@ -308,7 +269,7 @@ const styles = StyleSheet.create({
         color: 'white',
         fontWeight: 'bold',
         fontSize: 18,
-        textAlign:'right'
+        textAlign: 'right',
     },
     addButton: {
         position: 'absolute',
@@ -368,7 +329,7 @@ const styles = StyleSheet.create({
         borderRadius: 4,
         padding: 10,
         marginBottom: 15,
-        color:"#242424"
+        color: '#242424',
     },
     textArea: {
         height: 150,
@@ -380,7 +341,6 @@ const styles = StyleSheet.create({
         gap: 10,
     },
     modalButton: {
-        // flex: 1,
         padding: 12,
         borderRadius: 4,
         alignItems: 'center',
@@ -406,7 +366,7 @@ const styles = StyleSheet.create({
         padding: 5,
         marginRight: 15,
     },
-    headerText:{
+    headerText: {
         color: 'white',
         fontSize: 20,
         fontWeight: 'bold',

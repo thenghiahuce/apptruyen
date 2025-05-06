@@ -1,14 +1,11 @@
-// firebase.js
-
 import { initializeApp } from "firebase/app";
 import { getFirestore } from "firebase/firestore";
 import { getAuth as getWebAuth, initializeAuth, getReactNativePersistence } from "firebase/auth";
 import { getStorage } from "firebase/storage";
 import { getAnalytics, isSupported } from "firebase/analytics";
 import ReactNativeAsyncStorage from '@react-native-async-storage/async-storage';
-import { Platform } from 'react-native'; // Thêm Platform
+import { Platform } from 'react-native';
 
-// Cấu hình Firebase App
 const firebaseConfig = {
   apiKey: "AIzaSyAU_Yo3c53nlsdNH7NtLzyteMSY-l5YKT8",
   authDomain: "app-97cd3.firebaseapp.com",
@@ -19,24 +16,25 @@ const firebaseConfig = {
   measurementId: "G-GYCSC65PHD"
 };
 
-// Khởi tạo App
 const app = initializeApp(firebaseConfig);
 
-// Firestore & Storage luôn dùng chung
 const db = getFirestore(app);
 const storage = getStorage(app);
 
-// Auth: khác nhau giữa web và mobile
 let auth;
-if (Platform.OS === 'web') {
-  auth = getWebAuth(app);
-} else {
-  auth = initializeAuth(app, {
-    persistence: getReactNativePersistence(ReactNativeAsyncStorage),
-  });
+try {
+  if (Platform.OS === 'web') {
+    auth = getWebAuth(app);
+  } else {
+    auth = initializeAuth(app, {
+      persistence: getReactNativePersistence(ReactNativeAsyncStorage),
+    });
+  }
+  console.log('Firebase Auth initialized:', auth); // Debug
+} catch (error) {
+  console.error('Error initializing Firebase Auth:', error);
 }
 
-// Analytics (chỉ hỗ trợ web)
 let analytics;
 isSupported().then((supported) => {
   if (supported) {
@@ -44,5 +42,4 @@ isSupported().then((supported) => {
   }
 });
 
-// Export ra
 export { app, db, auth, storage, analytics };
