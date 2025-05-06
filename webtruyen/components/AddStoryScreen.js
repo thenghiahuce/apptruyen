@@ -106,7 +106,7 @@ const AddStoryScreen = () => {
                 </TouchableOpacity>
                 <Text style={styles.headerText}>Thêm Mới Truyện</Text>
                 </View>
-            <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+            {/*<TouchableWithoutFeedback onPress={Keyboard.dismiss}>*/}
             <View style={{
                 flex:1,
                 padding: 15,
@@ -182,7 +182,7 @@ const AddStoryScreen = () => {
                             </TouchableOpacity>
                         </View>
             </View>
-            </TouchableWithoutFeedback>
+            {/*</TouchableWithoutFeedback>*/}
             <Modal
                 visible={modalVisible}
                 animationType="slide"

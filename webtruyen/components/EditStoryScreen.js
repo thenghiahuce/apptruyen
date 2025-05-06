@@ -57,6 +57,7 @@ const EditStoryScreen = ({ route }) => {
 
     const handleUpdateStory = async (storyId, updatedFields) => {
         try {
+            setLoading(true); // Show loading when updating starts
             // console.log('Updating story with fields:', updatedFields);
             const sanitizedFields = {
                 title: updatedFields.title || '',
@@ -80,6 +81,8 @@ const EditStoryScreen = ({ route }) => {
         } catch (error) {
             console.error('Error updating story:', error);
             Alert.alert('Lỗi', 'Không thể cập nhật truyện');
+        } finally {
+            setLoading(false); // Hide loading after update completes
         }
     };
 
@@ -98,6 +101,7 @@ const EditStoryScreen = ({ route }) => {
 
     useEffect(() => {
         const handleData = () => {
+            setLoading(true); // Show loading when fetching initial data
             // console.log('Story data from Firestore:', story);
             setFormData({
                 title: story.title || '',
@@ -108,6 +112,7 @@ const EditStoryScreen = ({ route }) => {
                 chapter: Array.isArray(story.chapter) ? story.chapter : [],
                 status: story.status || 'Đang cập nhật',
             });
+            setLoading(false); // Hide loading after data is set
         };
         handleData();
     }, [story]);
@@ -177,6 +182,7 @@ const EditStoryScreen = ({ route }) => {
                                     status: formData.status,
                                 })
                             }
+                            disabled={loading} // Disable button during loading
                         >
                             <Text style={styles.buttonText}>{'Lưu'}</Text>
                         </TouchableOpacity>
