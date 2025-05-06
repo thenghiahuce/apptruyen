@@ -28,8 +28,8 @@ const UserProfileScreen = ({ route, navigation }) => {
       setLoading(true);
 
       // Đăng xuất khỏi Firebase
-      const auth = getAuth();
-      await signOut(auth);
+      // const auth = getAuth();
+      // await signOut(auth);
 
       // Xóa dữ liệu local
       await AsyncStorage.removeItem('userData');

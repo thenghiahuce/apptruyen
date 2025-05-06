@@ -89,8 +89,8 @@ const Home = () => {
         if (text) {
             const filtered = stories.filter(
                 (story) =>
-                    story.title.toLowerCase().includes(text.toLowerCase()) ||
-                    story.description.toLowerCase().includes(text.toLowerCase())
+                    story.title?.toLowerCase().includes(text.toLowerCase()) ||
+                    story.description?.toLowerCase().includes(text.toLowerCase())
             );
             setFilteredStories(filtered);
         } else {

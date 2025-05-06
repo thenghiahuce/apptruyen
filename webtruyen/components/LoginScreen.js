@@ -63,7 +63,45 @@ const LoginScreen = ({ navigation }) => {
           email.trim(),
           password.trim()
       );
-      // ...
+
+//       // Kiểm tra admin trước
+//       const adminQuery = query(
+//           collection(db, 'admin'),
+//           where('email', '==', email.trim())
+//       );
+//       const adminSnapshot = await getDocs(adminQuery);
+//       // Kiểm tra admin
+//       const isAdmin = await checkAdminRole(email.trim());
+//       console.log('Admin check:', email.trim(), isAdmin);
+//
+// // Lấy thông tin user từ Firestore
+      const usersRef = collection(db, "users");
+      const q = query(usersRef, where("email", "==", email.trim()));
+      const querySnapshot = await getDocs(q);
+
+      if (!querySnapshot.empty) {
+        const userData = {
+          ...querySnapshot.docs[0].data(),
+          // role: isAdmin ? 'admin' : 'user'  // gán role dựa trên kết quả kiểm tra
+        };
+
+        // Log để debug
+        console.log('Final userData:', userData);
+
+        // Lưu vào AsyncStorage
+        await AsyncStorage.setItem('userData', JSON.stringify(userData));
+
+        // Chuyển hướng
+        navigation.reset({
+          index: 0,
+          routes: [{
+            name: 'Home',
+          }],
+        });
+      } else {
+        Alert.alert('Lỗi', 'Không tìm thấy thông tin người dùng');
+      }
+
     } catch (error) {
       console.error('Lỗi đăng nhập:', error);
       Alert.alert('Lỗi đăng nhập', 'Email hoặc mật khẩu không đúng!');
